@@ -6,38 +6,85 @@ import (
 	"strings"
 )
 
-/* new type : color */
+// CuteColor defines a color
 type CuteColor string
 
-/* list of available colors */
+// Special defines a color
+type Special string
+
+// RenderColor defines a color struct,contains background color and text color
+type RenderColor struct {
+	Background CuteColor
+	TextColor  CuteColor
+	Special    Special
+}
+
+func (r *RenderColor) String() string {
+	return fmt.Sprintf("\033[%s;%s;%sm", r.Background, r.Special, r.TextColor)
+}
+
+// defines text color, background color, special characters control
 const (
-	NoColor     CuteColor = "\033[0m"
-	ColorRed    CuteColor = "\033[31m"
-	ColorGreen  CuteColor = "\033[32m"
-	ColorYellow CuteColor = "\033[33m"
-	ColorBlue   CuteColor = "\033[34m"
-	ColorPurple CuteColor = "\033[35m"
-	ColorCyan   CuteColor = "\033[36m"
-	ColorWhite  CuteColor = "\033[37m"
+	NoColor CuteColor = "0" // no color, background or text will be set default color
+
+	TextBlack  CuteColor = "30" // text black
+	TextRed    CuteColor = "31" // text red
+	TextGreen  CuteColor = "32" // text green
+	TextYellow CuteColor = "33" // text yellow
+	TextBlue   CuteColor = "34" // text blue
+	TextPurple CuteColor = "35" // text purple
+	TextCyan   CuteColor = "36" // text cyan
+	TextWhite  CuteColor = "37" // text white
+
+	BackgroundBlack  CuteColor = "40" // background black
+	BackgroundRed    CuteColor = "41" // background red
+	BackgroundGreen  CuteColor = "42" // background green
+	BackgroundYellow CuteColor = "43" // background yellow
+	BackgroundBlue   CuteColor = "44" // background blue
+	BackgroundPurple CuteColor = "45" // background purple
+	BackgroundCyan   CuteColor = "46" // background cyan
+	BackgroundWhite  CuteColor = "47" // background white
+
+	NoSpecial             = "0" // no special
+	SpecialHighlight      = "1" // special highlight
+	SpecialFade           = "2" // special fade
+	SpecialItalic         = "3" // special italic
+	SpecialUnderline      = "4" // special underline
+	SpecialFlicker        = "5" // special flicker
+	SpecialFlickerQuickly = "6" // special flicker quality
+	SpecialReverse        = "7" // special reverse
+	SpecialBlank          = "8" // special blank
+	SpecialDelete         = "9" // special delete
 )
 
-/* local variables */
+// default color
 var (
-	title_color   CuteColor = ColorYellow
-	message_color CuteColor = ColorPurple
+	titleColor *RenderColor = &RenderColor{
+		Background: NoColor,
+		TextColor:  TextYellow,
+		Special:    NoSpecial,
+	}
+
+	messageColor *RenderColor = &RenderColor{
+		Background: NoColor,
+		TextColor:  TextPurple,
+		Special:    NoSpecial,
+	}
+
+	noColor *RenderColor = &RenderColor{}
 )
 
-/* getter */
-func SetTitleColor(c CuteColor) {
-	title_color = c
+// SetTitleColor set the title color
+func SetTitleColor(c *RenderColor) {
+	titleColor = c
 }
 
-/* gitter */
-func SetMessageColor(c CuteColor) {
-	message_color = c
+// SetMessageColor set the message color
+func SetMessageColor(c *RenderColor) {
+	messageColor = c
 }
 
-/* local drawing title */
+// titleDraw local drawing title
 func titleDraw(title string) (box string) {
 	// box elements
 	topright := "╮"
@@ -51,49 +98,45 @@ func titleDraw(title string) (box string) {
 	line := strings.Repeat(w, len(title)+2)
 
 	// print title box
-	box = fmt.Sprintf("%v%v%v\n", topleft, line, topright)
-	box += fmt.Sprintf("%v %v %v\n", h, title, h)
-	box += fmt.Sprintf("%v%v%v", bottomleft, line, bottomright)
+	box = fmt.Sprintf("%v%v%v%v%v\n", titleColor, topleft, line, topright, noColor)
+	box += fmt.Sprintf("%v%v %v %v%v\n", titleColor, h, title, h, noColor)
+	box += fmt.Sprintf("%v%v%v%v%v", titleColor, bottomleft, line, bottomright, noColor)
 	return
 }
 
-/* local draw message */
+// messageDraw local draw message
 func messageDraw(message string) (msg string) {
-	msg = fmt.Sprintf("🭬 %s", message)
+	msg = fmt.Sprintf("%v ▶ %s%v", messageColor, message, noColor)
 	return
 }
 
-/* println */
+// Println println
 func Println(title string, messages ...string) {
-	fmt.Printf("%v", title_color) // set the color
 	fmt.Println(titleDraw(title))
-	fmt.Printf("%v", message_color) // set the color
+
 	for _, m := range messages {
 		fmt.Println(messageDraw(m))
 	}
-	fmt.Printf("%v", NoColor) // set no color
 }
 
-/* println */
+// Printf print format
 func Printf(title string, message string, params ...interface{}) {
-	fmt.Printf("%v", title_color) // set the color
 	fmt.Println(titleDraw(title))
-	fmt.Printf("%v", message_color) // set the color
+
 	fmt.Printf(messageDraw(message), params...)
-	fmt.Printf("%v", NoColor) // set no color
 }
 
-/* a cute panic like */
+// Check a cute panic like
 func Check(title string, err error) {
 	if err != nil {
 		// print title
-		fmt.Printf("%v", ColorYellow)
+		fmt.Printf("%v", TextYellow)
 		fmt.Println(titleDraw(title))
 
 		// print error message
-		fmt.Printf("%v", ColorRed)
-		fmt.Println("🗲", err.Error())
-		fmt.Printf("%v", NoColor)
+		fmt.Printf("%v", TextRed)
+		fmt.Println("▶", err.Error())
+		fmt.Printf("%v", noColor)
 		os.Exit(1)
 	}
 }
